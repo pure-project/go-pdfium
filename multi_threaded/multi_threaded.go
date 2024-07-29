@@ -155,7 +155,6 @@ func (i *pdfiumInstance) Close() (err error) {
 
 	pluginClientMap.Delete(i.instanceRef)
 
-	i.worker.plugin.Close()
 	i.worker.pluginClient.Kill()
 
 	return nil
