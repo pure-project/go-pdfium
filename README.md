@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project forked from https://github.com/pure-project/go-pdfium.
+This project forked from https://github.com/klippa-app/go-pdfium.
 
 Changes:
 
