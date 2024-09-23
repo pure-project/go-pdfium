@@ -131,6 +131,9 @@ func (p *PdfiumImplementation) GetPageTextStructured(request *requests.GetPageTe
 				return nil, err
 			}
 
+			isGen := C.FPDFText_IsGenerated(textPage, C.int(i))
+			mapErr := C.FPDFText_HasUnicodeMapError(textPage, C.int(i))
+
 			char := &responses.GetPageTextStructuredChar{
 				Text:  transformedText,
 				Angle: float64(angle),
@@ -140,6 +143,8 @@ func (p *PdfiumImplementation) GetPageTextStructured(request *requests.GetPageTe
 					Right:  float64(right),
 					Bottom: float64(bottom),
 				},
+				IsGenerated: isGen != 0,
+				IsUnicode:   mapErr == 0,
 			}
 
 			if request.CollectFontInformation {
