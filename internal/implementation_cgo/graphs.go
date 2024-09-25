@@ -109,7 +109,7 @@ func (p *PdfiumImplementation) GetPagePath(request *requests.GetPagePath) (*resp
 			}
 
 			for j := 0; j < int(segCount); j++ {
-				seg := C.FPDFPath_GetPathSegment(obj, j)
+				seg := C.FPDFPath_GetPathSegment(obj, C.int(j))
 				segType := C.FPDFPathSegment_GetType(seg)
 				isClose := C.FPDFPathSegment_GetClose(seg)
 				var x, y C.float
