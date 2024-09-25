@@ -98,6 +98,12 @@ type Pdfium interface {
 
 	// End dest
 
+	// Start graphs
+
+	GetPageImage(request *requests.GetPageImage) (*responses.GetPageImage, error)
+
+	// End graphs
+
 	// Start fpdfview.h
 
 	// FPDF_LoadDocument opens and load a PDF document from a file path.

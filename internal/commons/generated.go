@@ -445,6 +445,7 @@ type Pdfium interface {
 	GetDestInfo(*requests.GetDestInfo) (*responses.GetDestInfo, error)
 	GetJavaScriptActions(*requests.GetJavaScriptActions) (*responses.GetJavaScriptActions, error)
 	GetMetaData(*requests.GetMetaData) (*responses.GetMetaData, error)
+	GetPageImage(*requests.GetPageImage) (*responses.GetPageImage, error)
 	GetPageSize(*requests.GetPageSize) (*responses.GetPageSize, error)
 	GetPageSizeInPixels(*requests.GetPageSizeInPixels) (*responses.GetPageSizeInPixels, error)
 	GetPageText(*requests.GetPageText) (*responses.GetPageText, error)
@@ -4781,6 +4782,16 @@ func (g *PdfiumRPC) GetJavaScriptActions(request *requests.GetJavaScriptActions)
 func (g *PdfiumRPC) GetMetaData(request *requests.GetMetaData) (*responses.GetMetaData, error) {
 	resp := &responses.GetMetaData{}
 	err := g.client.Call("Plugin.GetMetaData", request, resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
+}
+
+func (g *PdfiumRPC) GetPageImage(request *requests.GetPageImage) (*responses.GetPageImage, error) {
+	resp := &responses.GetPageImage{}
+	err := g.client.Call("Plugin.GetPageImage", request, resp)
 	if err != nil {
 		return nil, err
 	}
@@ -12672,6 +12683,24 @@ func (s *PdfiumRPCServer) GetMetaData(request *requests.GetMetaData, resp *respo
 	}()
 
 	implResp, err := s.Impl.GetMetaData(request)
+	if err != nil {
+		return err
+	}
+
+	// Overwrite the target address of resp to the target address of implResp.
+	*resp = *implResp
+
+	return nil
+}
+
+func (s *PdfiumRPCServer) GetPageImage(request *requests.GetPageImage, resp *responses.GetPageImage) (err error) {
+	defer func() {
+		if panicError := recover(); panicError != nil {
+			err = fmt.Errorf("panic occurred in %s: %v", "GetPageImage", panicError)
+		}
+	}()
+
+	implResp, err := s.Impl.GetPageImage(request)
 	if err != nil {
 		return err
 	}

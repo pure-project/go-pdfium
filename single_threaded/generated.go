@@ -6073,6 +6073,20 @@ func (i *pdfiumInstance) GetMetaData(request *requests.GetMetaData) (resp *respo
 	return i.pdfium.GetMetaData(request)
 }
 
+func (i *pdfiumInstance) GetPageImage(request *requests.GetPageImage) (resp *responses.GetPageImage, err error) {
+	if i.closed {
+		return nil, errors.New("instance is closed")
+	}
+
+	defer func() {
+		if panicError := recover(); panicError != nil {
+			err = fmt.Errorf("panic occurred in %s: %v", "GetPageImage", panicError)
+		}
+	}()
+
+	return i.pdfium.GetPageImage(request)
+}
+
 func (i *pdfiumInstance) GetPageSize(request *requests.GetPageSize) (resp *responses.GetPageSize, err error) {
 	if i.closed {
 		return nil, errors.New("instance is closed")
