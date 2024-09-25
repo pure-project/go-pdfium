@@ -26,3 +26,26 @@ type ImageBitmap struct {
 	Height int
 	Pix    []byte
 }
+
+type GetPagePath struct {
+	Page  int
+	Paths []GetPagePathData // A list of path of a page
+}
+
+type GetPagePathData struct {
+	Position PathPosition
+	Segments []PathSegment // A list of segment of a path
+}
+
+type PathPosition = ImagePosition
+
+type PathSegment struct {
+	Type  enums.FPDF_SEGMENT
+	Point PathPoint
+	Close bool
+}
+
+type PathPoint struct {
+	X float64
+	Y float64
+}

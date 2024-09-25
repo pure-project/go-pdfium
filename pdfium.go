@@ -100,7 +100,11 @@ type Pdfium interface {
 
 	// Start graphs
 
+	// GetPageImage returns all the image of a page.
 	GetPageImage(request *requests.GetPageImage) (*responses.GetPageImage, error)
+
+	// GetPagePath returns all the path of a page.
+	GetPagePath(request *requests.GetPagePath) (*responses.GetPagePath, error)
 
 	// End graphs
 

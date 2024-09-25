@@ -6087,6 +6087,20 @@ func (i *pdfiumInstance) GetPageImage(request *requests.GetPageImage) (resp *res
 	return i.pdfium.GetPageImage(request)
 }
 
+func (i *pdfiumInstance) GetPagePath(request *requests.GetPagePath) (resp *responses.GetPagePath, err error) {
+	if i.closed {
+		return nil, errors.New("instance is closed")
+	}
+
+	defer func() {
+		if panicError := recover(); panicError != nil {
+			err = fmt.Errorf("panic occurred in %s: %v", "GetPagePath", panicError)
+		}
+	}()
+
+	return i.pdfium.GetPagePath(request)
+}
+
 func (i *pdfiumInstance) GetPageSize(request *requests.GetPageSize) (resp *responses.GetPageSize, err error) {
 	if i.closed {
 		return nil, errors.New("instance is closed")

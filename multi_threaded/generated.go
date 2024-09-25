@@ -3435,6 +3435,14 @@ func (i *pdfiumInstance) GetPageImage(request *requests.GetPageImage) (*response
 	return i.worker.plugin.GetPageImage(request)
 }
 
+func (i *pdfiumInstance) GetPagePath(request *requests.GetPagePath) (*responses.GetPagePath, error) {
+	if i.closed {
+		return nil, errors.New("instance is closed")
+	}
+
+	return i.worker.plugin.GetPagePath(request)
+}
+
 func (i *pdfiumInstance) GetPageSize(request *requests.GetPageSize) (*responses.GetPageSize, error) {
 	if i.closed {
 		return nil, errors.New("instance is closed")

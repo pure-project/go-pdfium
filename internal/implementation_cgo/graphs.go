@@ -14,7 +14,7 @@ import (
 	"github.com/pure-project/go-pdfium/responses"
 )
 
-// GetPageImage returns the image of a page
+// GetPageImage returns all the image of a page
 func (p *PdfiumImplementation) GetPageImage(request *requests.GetPageImage) (*responses.GetPageImage, error) {
 	p.Lock()
 	defer p.Unlock()
@@ -74,5 +74,63 @@ func (p *PdfiumImplementation) GetPageImage(request *requests.GetPageImage) (*re
 	return &responses.GetPageImage{
 		Page:   pageHandle.index,
 		Images: images,
+	}, nil
+}
+
+// GetPagePath returns all the path of a page
+func (p *PdfiumImplementation) GetPagePath(request *requests.GetPagePath) (*responses.GetPagePath, error) {
+	p.Lock()
+	defer p.Unlock()
+
+	pageHandle, err := p.loadPage(request.Page)
+	if err != nil {
+		return nil, err
+	}
+
+	var paths []responses.GetPagePathData
+
+	objCount := C.FPDFPage_CountObjects(pageHandle.handle)
+	for i := 0; i < int(objCount); i++ {
+		obj := C.FPDFPage_GetObject(pageHandle.handle, C.int(i))
+		objType := C.FPDFPageObj_GetType(obj)
+		if enums.FPDF_PAGEOBJ(int(objType)) == enums.FPDF_PAGEOBJ_PATH {
+			var left, bottom, right, top C.float
+			C.FPDFPageObj_GetBounds(obj, &left, &bottom, &right, &top)
+			segCount := C.FPDFPath_CountSegments(obj)
+
+			path := responses.GetPagePathData{
+				Position: responses.PathPosition{
+					Left:   float64(left),
+					Bottom: float64(bottom),
+					Right:  float64(right),
+					Top:    float64(top),
+				},
+				Segments: make([]responses.PathSegment, 0, int(segCount)),
+			}
+
+			for j := 0; j < int(segCount); j++ {
+				seg := C.FPDFPath_GetPathSegment(obj, j)
+				segType := C.FPDFPathSegment_GetType(seg)
+				isClose := C.FPDFPathSegment_GetClose(seg)
+				var x, y C.float
+				C.FPDFPathSegment_GetPoint(seg, &x, &y)
+
+				path.Segments = append(path.Segments, responses.PathSegment{
+					Type: enums.FPDF_SEGMENT(segType),
+					Point: responses.PathPoint{
+						X: float64(x),
+						Y: float64(y),
+					},
+					Close: isClose == 1,
+				})
+			}
+
+			paths = append(paths, path)
+		}
+	}
+
+	return &responses.GetPagePath{
+		Page:  pageHandle.index,
+		Paths: paths,
 	}, nil
 }
