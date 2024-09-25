@@ -11,6 +11,8 @@ Changes:
 3. Remove webassembly.
 4. Remove turbojpeg.
 5. Remove the pdfium instance pool, just one-subprocess-per-instance.
+6. Add GetPageImage and GetPagePath method.
+7. Add pdfium-worker multi-threaded subprocess executor file.
 
 ## License
 
