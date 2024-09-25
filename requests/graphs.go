@@ -1,5 +1,6 @@
 package requests
 
 type GetPageImage struct {
-	Page Page
+	Page   Page
+	Bitmap bool // Weather to get bitmap data
 }
