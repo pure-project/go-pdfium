@@ -29,8 +29,8 @@ func (p *PdfiumImplementation) GetPageImage(request *requests.GetPageImage) (*re
 	objCount := C.FPDFPage_CountObjects(pageHandle.handle)
 	for i := 0; i < int(objCount); i++ {
 		obj := C.FPDFPage_GetObject(pageHandle.handle, C.int(i))
-		objType := C.FPDFPageObj_GetType(obj)
-		if enums.FPDF_PAGEOBJ(int(objType)) == enums.FPDF_PAGEOBJ_IMAGE {
+		objType := enums.FPDF_PAGEOBJ(int(C.FPDFPageObj_GetType(obj)))
+		if objType == enums.FPDF_PAGEOBJ_IMAGE || objType == enums.FPDF_PAGEOBJ_FORM {
 			var left, bottom, right, top C.float
 			success := C.FPDFPageObj_GetBounds(obj, &left, &bottom, &right, &top)
 			if int(success) == 1 {
@@ -43,7 +43,7 @@ func (p *PdfiumImplementation) GetPageImage(request *requests.GetPageImage) (*re
 					},
 				}
 
-				if request.Bitmap {
+				if objType == enums.FPDF_PAGEOBJ_IMAGE && request.Bitmap {
 					bitmap := C.FPDFImageObj_GetBitmap(obj)
 					format := C.FPDFBitmap_GetFormat(bitmap)
 					if enums.FPDF_BITMAP_FORMAT(format) != enums.FPDF_BITMAP_FORMAT_UNKNOWN {
