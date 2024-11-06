@@ -145,8 +145,8 @@ func (p *PdfiumImplementation) GetPagePath(request *requests.GetPagePath) (*resp
 	objCount := C.FPDFPage_CountObjects(pageHandle.handle)
 	for i := 0; i < int(objCount); i++ {
 		obj := C.FPDFPage_GetObject(pageHandle.handle, C.int(i))
-		objType := C.FPDFPageObj_GetType(obj)
-		if enums.FPDF_PAGEOBJ(int(objType)) == enums.FPDF_PAGEOBJ_PATH {
+		objType := enums.FPDF_PAGEOBJ(int(C.FPDFPageObj_GetType(obj)))
+		if objType == enums.FPDF_PAGEOBJ_PATH {
 			var left, bottom, right, top C.float
 			C.FPDFPageObj_GetBounds(obj, &left, &bottom, &right, &top)
 			segCount := C.FPDFPath_CountSegments(obj)
@@ -179,6 +179,9 @@ func (p *PdfiumImplementation) GetPagePath(request *requests.GetPagePath) (*resp
 			}
 
 			paths = append(paths, path)
+
+		} else if objType == enums.FPDF_PAGEOBJ_FORM {
+			paths = getFormPath(obj, paths)
 		}
 	}
 
@@ -186,4 +189,52 @@ func (p *PdfiumImplementation) GetPagePath(request *requests.GetPagePath) (*resp
 		Page:  pageHandle.index,
 		Paths: paths,
 	}, nil
+}
+
+func getFormPath(formObj C.FPDF_PAGEOBJECT, paths []responses.GetPagePathData) []responses.GetPagePathData {
+	fObjCount := C.FPDFFormObj_CountObjects(formObj)
+	for i := 0; i < int(fObjCount); i++ {
+		fObj := C.FPDFFormObj_GetObject(formObj, C.ulong(i))
+		fObjType := enums.FPDF_PAGEOBJ(int(C.FPDFPageObj_GetType(fObj)))
+		if fObjType == enums.FPDF_PAGEOBJ_PATH {
+			var left, bottom, right, top C.float
+			success := C.FPDFPageObj_GetBounds(fObj, &left, &bottom, &right, &top)
+			if int(success) == 1 {
+				segCount := C.FPDFPath_CountSegments(fObj)
+
+				path := responses.GetPagePathData{
+					Position: responses.PathPosition{
+						Left:   float64(left),
+						Bottom: float64(bottom),
+						Right:  float64(right),
+						Top:    float64(top),
+					},
+					Segments: make([]responses.PathSegment, 0, int(segCount)),
+				}
+
+				for j := 0; j < int(segCount); j++ {
+					seg := C.FPDFPath_GetPathSegment(fObj, C.int(j))
+					segType := C.FPDFPathSegment_GetType(seg)
+					isClose := C.FPDFPathSegment_GetClose(seg)
+					var x, y C.float
+					C.FPDFPathSegment_GetPoint(seg, &x, &y)
+
+					path.Segments = append(path.Segments, responses.PathSegment{
+						Type: enums.FPDF_SEGMENT(segType),
+						Point: responses.PathPoint{
+							X: float64(x),
+							Y: float64(y),
+						},
+						Close: isClose == 1,
+					})
+				}
+
+				paths = append(paths, path)
+			}
+		} else if fObjType == enums.FPDF_PAGEOBJ_FORM {
+			paths = getFormPath(fObj, paths)
+		}
+	}
+
+	return paths
 }
